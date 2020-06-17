@@ -4,16 +4,18 @@
 >
 > Scala版本: 2.11
 >
-> Github地址：https://github.com/shirukai/debug-flink-state-example.git
+> Github地址：https://github.com/shirukai/flink-examples-debug-state.git
 >
 > 在本地开发带状态的Flink任务时，经常会遇到这样的问题，需要验证状态是否生效？以及重启应用之后，状态里的数据能否从checkpoint的恢复？首先要明确的是，Flink重启时不会自动加载状态，需要我们手动指定checkpoint路径。笔者从Spark的Structured Streaming转到Flink的时候，就遇到这样的问题。在Spark中，我们使用的状态信息会随着程序再次启动时自动被加载出来。所以当时以为Flink状态也会被自动加载，在开发有状态算子时，测试重启应用之后，并没有继续上一次的状态。一开始以为是checkpoint的设置的问题，调试了好长时间，发现flink需要手动指定checkpoint路径。本篇文章，将从搭建项目到编写带状态的任务，介绍如何在IDEA中调试local模式下带状态的flink任务。
+>
+> *注意：后期git上的项目名称从debug-flink-state-example改为flink-examples-debug-state*
 
 # 1 基于官方模板快速创建Flink项目
 
 Flink提供了Meven模板，能够帮助我们快速创建Maven项目。执行如下命令快速创建一个flink项目：
 
-```
-mvn archetype:generate -DarchetypeGroupId=org.apache.flink -DarchetypeArtifactId=flink-quickstart-scala -DarchetypeVersion=1.8.0 -DgroupId=debug.flink.state.example -DartifactId=debug-flink-state-example -Dversion=1.0 -Dpackage=debug.flink.state.example -DinteractiveMode=false
+```shell
+mvn archetype:generate -DarchetypeGroupId=org.apache.flink -DarchetypeArtifactId=flink-quickstart-scala -DarchetypeVersion=1.8.0 -DgroupId=flink.examples -DartifactId=flink-examples-debug-state -Dversion=1.0 -Dpackage=flink.debug.state.example -DinteractiveMode=false
 ```
 
 项目创建完成后，使用IDEA打开项目。
@@ -24,7 +26,9 @@ mvn archetype:generate -DarchetypeGroupId=org.apache.flink -DarchetypeArtifactId
 
 ![](https://cdn.jsdelivr.net/gh/shirukai/images/2a0d6b3018493ab4e40529cc71470185.jpg)
 
+纠正一下上面这个问题，flink的两个包作用域都设置为了provided，在程序执行时汇报类不存在的异常。我们可以注释掉scope作用域，也可以在Maven里勾选带有flink依赖的Profiles。
 
+![image-20200617115003193](https://cdn.jsdelivr.net/gh/shirukai/images/20200617115003.png)
 
 # 2 编写一个有状态简单任务
 

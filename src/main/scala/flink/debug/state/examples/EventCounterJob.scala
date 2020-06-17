@@ -1,4 +1,4 @@
-package debug.flink.state.example
+package flink.debug.state.examples
 
 import java.io.File
 
